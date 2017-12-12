@@ -1,6 +1,7 @@
 {
-	"name": "Automatic Rule-Based Time-Tracker",
-	"description": "Records which windows are open, which one has focus and time since your last action in format compatible with arbtt.",
-	"uuid": "arbtt-capture@tmiasko.github.com",
-	"shell-version": ["3.26.2"]
+  "uuid": "arbtt-capture@tmiasko.github.com",
+  "name": "Automatic Rule-Based Time-Tracker",
+  "description": "Records which windows are open, which one has focus and time since your last action in format compatible with arbtt.",
+  "settings-schema": "org.gnome.shell.extensions.arbtt-capture.gschema.xml",
+  "shell-version": ["3.26.2"]
 }

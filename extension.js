@@ -8,7 +8,9 @@ var {
     const GLib = imports.gi.GLib;
     const Main = imports.ui.main;
     const Meta = imports.gi.Meta;
-    // const This = imports.misc.extensionUtils.getCurrentExtension();
+    
+    const Me = imports.misc.extensionUtils.getCurrentExtension();
+    const Convenience = Me.convenience;
 
     function logWindows() {
         log("###########");
@@ -37,6 +39,8 @@ var {
 
     function init() {
         log('initialized');
+
+        let settings = convenience.getSettings();
     }
 
     let timeoutId = null;

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="gnome-shell-extensions-arbtt-capture">
+  <schema id="org.gnome.shell.extensions.arbtt-capture" path="/org/gnome/shell/extensions/arbtt-capture/">
+    <key name="sampling-interval" type="u">
+      <default>60</default>
+      <summary>Sampling interval in seconds</summary>
+      <description>Interval between consequtive samples expressed in seconds.</description>
+    </key>
+    <key name="log-path" type="s">
+      <default>""</default>
+      <summary>Location of the log file.</summary>
+    </key>
+  </schema>
+</schemalist>
