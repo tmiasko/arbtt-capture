@@ -9,24 +9,8 @@ var {
     const Gio = imports.gi.Gio;
     const Gtk = imports.gi.Gtk;
 
-    function getSettings() {
-        const schemaId = 'org.gnome.shell.extensions.arbtt-capture';
-        const GioSSS = Gio.SettingsSchemaSource;
-        const schemaSource = GioSSS.new_from_directory(
-            '/home/tm/dev/gjs-experiments/settings',
-            GioSSS.get_default(),
-            false);
-        const schema = schemaSource.lookup(schemaId, true);
-        if (schema === null) {
-            throw new Error(`Schema ${schemaId} for extension not found`);
-        }
-        const settings = new Gio.Settings({settings_schema: schema});
-        if (!settings.get_string('log-path')) {
-            const defaultPath = GLib.get_home_dir() + '/.arbtt/capture.log';
-            settings.set_string('log-path', defaultPath);
-        }
-        return settings;
-    }
+    const Extension = imports.misc.extensionUtils.getCurrentExtension();
+    const Settings = Extension.imports.settings;
 
     const SettingsWidget = GObject.registerClass(
     class SettingsWidget extends Gtk.Grid {
@@ -38,7 +22,7 @@ var {
             this.column_spacing = 12;
             this.set_orientation(Gtk.Orientation.VERTICAL);
 
-            const settings = getSettings();
+            const settings = Settings.getSettings();
 
             let label = new Gtk.Label({
                 label: "Sampling interval in seconds",
