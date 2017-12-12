@@ -1,0 +1,6 @@
+{
+	"name": "Automatic Rule-Based Time-Tracker",
+	"description": "Records which windows are open, which one has focus and time since your last action in format compatible with arbtt.",
+	"uuid": "arbtt-capture@tmiasko.github.com",
+	"shell-version": ["3.26.2"]
+}
