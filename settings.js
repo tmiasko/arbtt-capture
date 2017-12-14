@@ -1,3 +1,17 @@
+// Copyright (C) 2017 Tomasz Miąsko
+// 
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// Access to application settings.
+
 var {
     getSettings,
 } = (function() {
@@ -22,6 +36,7 @@ var {
         // Configure defaults before first use,
         // it seems impossible to put those directly in schema file.
         if (!settings.get_string('log-path')) {
+            // TODO create .arbtt directory if necessary.
             const defaultPath = GLib.get_home_dir() + '/.arbtt/capture.log';
             settings.set_string('log-path', defaultPath);
         }
