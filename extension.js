@@ -48,7 +48,7 @@ var {
 
     function generateLogEntry() {
         const focused = global.display.get_focus_window();
-        const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null).map((w) => {
+        const windows = global.display.get_tab_list(Meta.TabList.NORMAL, null).map((w) => {
             return {
                 title: w.get_title(),
                 program: w.get_wm_class_instance(),
@@ -56,7 +56,8 @@ var {
             }
         });
 
-        if (focused !== null && windows.every((w) => !w.active)) {
+        const focusedFound = windows.some((w) => w.active);
+        if (focused !== null && !focusedFound) {
             log(`focused window not found in tab-list: ${focused.get_title()}`);
         }
 
