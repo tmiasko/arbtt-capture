@@ -224,44 +224,57 @@ var {
 
         *[Symbol.iterator]() {
             while (true) {
-                // DataInputStream read_byte throws an exception on EOF, which we don't want.
-                // Instead we use read_byte from BufferedInputStream which returns -1 on EOF.
-                const entryVersion = Gio.BufferedInputStream.prototype.read_byte.call(this._stream, null);
-                if (entryVersion == -1) {
-                    return null;
+                const entry = this.readEntry();
+                if (entry === null) {
+                    break;
                 }
-                if (entryVersion != 1) {
-                    throw new Error(`unsupported TimeLogEntry version tag: ${entryVersion}`);
-                }
-
-                const time = this.readTimestamp();
-                // Capture interval in milli-seconds.
-                const interval = this.readInteger();
-
-                let dataVersion = this._stream.read_byte(null);
-                if (dataVersion != 3) {
-                    throw new Error(`unsupported CaptureData version tag: ${dataVersion}`);
-                }
-
-                const windows = new Array(this.readInt64());
-                for (let i of windows.keys()) {
-                    windows[i] = {
-                        active: this.readBool(),
-                        title: this.readString(),
-                        program: this.readString(),
-                    };
-                }
-
-                // Idle time in milliseconds.
-                const idle = this.readInteger();
-                const desktop = this.readString(false);
-
-                // TODO wrap in try catch ?
-                this._lookupPool = this._appendPool;
-                this._appendPool = [];
-
-                yield {time, interval, idle, desktop, windows};
+                yield entry;
             }
+        }
+
+        readEntry() {
+            // DataInputStream read_byte throws an exception on EOF, which we don't want.
+            // Instead we use read_byte from BufferedInputStream which returns -1 on EOF.
+            const entryVersion = Gio.BufferedInputStream.prototype.read_byte.call(this._stream, null);
+            if (entryVersion === -1) {
+                return null;
+            }
+            if (entryVersion !== 1) {
+                throw new Error(`unsupported TimeLogEntry version tag: ${entryVersion}`);
+            }
+
+            const timestamp = this.readTimestamp();
+            // Capture interval in milli-seconds.
+            const interval = this.readInteger();
+
+            let dataVersion = this._stream.read_byte(null);
+            if (dataVersion !== 3) {
+                throw new Error(`unsupported CaptureData version tag: ${dataVersion}`);
+            }
+
+            const windows = new Array(this.readInt64());
+            for (let i of windows.keys()) {
+                windows[i] = {
+                    active: this.readBool(),
+                    title: this.readString(),
+                    program: this.readString(),
+                };
+            }
+
+            // Idle time in milliseconds.
+            const idle = this.readInteger();
+            const desktop = this.readString(false);
+
+            this._lookupPool = this._appendPool;
+            this._appendPool = [];
+
+            return {
+              timestamp,
+              interval,
+              idle,
+              desktop,
+              windows
+            };
         }
 
         // Reads UTC timestamp.
@@ -280,11 +293,11 @@ var {
             let result = [];
             while (count > 0) {
                 const bytes = this._stream.read_bytes(count, null).toArray();
-                if (bytes.length == 0) {
+                if (bytes.length === 0) {
                     throw new Error("unexpected eof");
                 }
                 count -= bytes.length;
-                for (let i=0; i != bytes.length; i++) {
+                for (let i=0; i !== bytes.length; i++) {
                     result.push(bytes[i]);
                 }
             }
@@ -341,13 +354,13 @@ var {
         readChar() {
             const bytes = [this._stream.read_byte(null)];
             const width = UTF8_CHAR_WIDTH[bytes[0]];
-            if (width == 0) {
+            if (width === 0) {
                 throw new Error("invalid utf-8 string"); 
             }
             for (let i=1; i != width; i++) {
                 bytes.push(this._stream.read_byte(null));
             }
-            // TODO just use ByteArray with encoding argument here.
+            // WTF: ByteArray.fromArray(bytes).toString() at some points starts returning [object ByteArray].
             return decodeURIComponent(escape(String.fromCharCode.apply(null, bytes)));
         }
 
@@ -355,15 +368,16 @@ var {
         readString(saveReference=true) {
             const tag = this._stream.read_byte(null);
             let result;
-            if (tag == 0) {
+            if (tag === 0) {
                 const count = this.readInt64();
                 result = "";
-                for (let i=0; i != count; ++i) {
+                for (let i=0; i !== count; ++i) {
                     result += this.readChar();
                 }
-            } else {
-                // TODO add error checking.
+            } else if (1 <= tag && tag <= this._lookupPool.length) {
                 result = this._lookupPool[tag-1];
+            } else {
+                throw new Error(`invalid string reference: ${tag}`);
             }
             if (saveReference) {
                 this._appendPool.push(result);
