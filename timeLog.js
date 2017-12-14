@@ -43,8 +43,9 @@ var {
 
     class Writer {
 
-        constructor(filename) {
-            const insertHeader = file.query_exists(null);
+        constructor(path) {
+            const file = Gio.File.new_for_path(path);
+            const insertHeader = !file.query_exists(null);
             this._stream = file.append_to(Gio.FileCreateFlags.NONE, null);
             if (insertHeader) {
                 this._stream.write_all(MAGIC, null);
@@ -57,7 +58,7 @@ var {
             // TODO replace with a single method to write and steal bytes?
             this._serializer.writeEntry(entry);
             const bytes = this._serializer.stealBytes();
-            this._stream.write_all(bytes, null);
+            this._stream.write_all(bytes.get_data(), null);
             this._stream.flush(null);
         }
     }
@@ -76,8 +77,8 @@ var {
         }
 
         stealBytes() {
-            this._stream.close();
-            const bytes = this._stream.steal_as_bytes();
+            this._stream.close(null);
+            const bytes = this._stream.get_base_stream().steal_as_bytes();
             this._stream = newMemoryBackedDataStream();
             return bytes;
         }
@@ -98,7 +99,7 @@ var {
                     this.writeString(program);
                 }
                 this.writeInteger(idle);
-                this.writeString(desktop);
+                this.writeString(desktop, false);
             } catch (e) {
                 // Ensure that we don't refer back to strings from partially serialized entry.
                 this._lookupPool.clear();
@@ -107,7 +108,7 @@ var {
             } finally {
                 this._lookupPool.clear();
                 // Limit string pool to first 255 strings, we can't refer back to others either way.
-                for (const i=0; i != this._appendPool.length && i < 255; i++) {
+                for (let i=0; i != this._appendPool.length && i < 255; i++) {
                     const string = this._appendPool[i];
                     if (!this._lookupPool.has(string)) {
                         const id = i + 1;
@@ -124,15 +125,15 @@ var {
 
         writeInteger(value) {
             if (INT32_MIN <= value && value <= INT32_MAX) {
-                this.stream.put_byte(0, null);
-                this.stream.put_int32(value, null);
+                this._stream.put_byte(0, null);
+                this._stream.put_int32(value, null);
             } else {
                 // TODO implement this!
                 throw new Error('not implemented yet');
             }
         }
 
-        writeString(value) {
+        writeString(value, saveReference=true) {
             const id = this._lookupPool.get(value);
             if (id !== undefined && 1 <= id && id <= 255) {
                 this._stream.put_byte(id, null);
@@ -141,16 +142,18 @@ var {
 
                 // Write number of code points first.
                 let length = 0;
-                for (const codePoint of string) { 
+                for (const codePoint of value) { 
                     length += 1;
                 }
                 this._stream.put_int64(length, null);
 
                 // Write UTF-8 encoding of each code point.
-                const bytes = ByteArray.fromString(string, "UTF-8");
+                const bytes = ByteArray.fromString(value, "UTF-8");
                 this._stream.write_all(bytes, null);
             }
-            this._appendPool.push(value);
+            if (saveReference) {
+                this._appendPool.push(value);
+            }
         }
 
         writeTimestamp(date) {
