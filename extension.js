@@ -48,14 +48,17 @@ var {
 
     function generateLogEntry() {
         const focused = global.display.get_focus_window();
-        const windows = global.get_window_actors().map((window) => {
-            const meta = window.get_meta_window();
+        const windows = global.display.get_tab_list(Meta.TabList.NORMAL_ALL, null).map((w) => {
             return {
-                title: meta.get_title(),
-                program: meta.get_wm_class_instance(),
-                active: meta == focused,
+                title: w.get_title(),
+                program: w.get_wm_class_instance(),
+                active: w == focused,
             }
         });
+
+        if (focused !== null && windows.every((w) => !w.active)) {
+            log(`focused window not found in tab-list: ${focused.get_title()}`);
+        }
 
         const workspaceIndex = global.screen.get_active_workspace_index();
         const workspace = Meta.prefs_get_workspace_name(workspaceIndex);
@@ -116,7 +119,7 @@ var {
         // TimeLogEntry version tag.
         stream.put_byte(1, null);
         writeTimestamp(stream, timestamp);
-        writeInteger(stream, interval);
+        writeInteger(stream, 1000*interval);
         // Data version tag.
         stream.put_byte(3, null);
         stream.put_int64(windows.length, null);
