@@ -47,7 +47,11 @@ var {
     };
 
     function generateLogEntry() {
-        const focused = global.display.get_focus_window();
+        let focused = global.display.get_focus_window();
+        if (focused !== null) {
+            // Move along ancestry skipping over transient windows.
+            focused = focused.find_root_ancestor();
+        }
         const windows = global.display.get_tab_list(Meta.TabList.NORMAL, null).map((w) => {
             return {
                 title: w.get_title(),
@@ -58,7 +62,7 @@ var {
 
         const focusedFound = windows.some((w) => w.active);
         if (focused !== null && !focusedFound) {
-            log(`focused window not found in tab-list: ${focused.get_title()}`);
+            log(`Focused window not found in tab-list: title=${focused.get_title()}, wm_class=${focused.get_wm_class()}`);
         }
 
         const workspaceIndex = global.screen.get_active_workspace_index();
