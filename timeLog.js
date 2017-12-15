@@ -111,10 +111,8 @@ var {
             this._serializer = new Serializer();
         }
 
-        writeEntry(entry) {
-            // TODO replace with a single method to write and steal bytes?
-            this._serializer.writeEntry(entry);
-            const bytes = this._serializer.stealBytes();
+        write(entry) {
+            const bytes = this._serializer.serialize(entry);
             this._stream.write_all(bytes.get_data(), null);
             this._stream.flush(null);
         }
@@ -128,16 +126,17 @@ var {
     class Serializer {
 
         constructor() {
-            this._stream = newMemoryBackedDataStream();
+            this._stream = null;
             this._lookupPool = new Map();
             this._appendPool = [];
         }
 
-        stealBytes() {
-            this._stream.close(null);
-            const bytes = this._stream.get_base_stream().steal_as_bytes();
+
+        serialize(entry) {
             this._stream = newMemoryBackedDataStream();
-            return bytes;
+            this.writeEntry(entry);
+            this._stream.close(null);
+            return this._stream.get_base_stream().steal_as_bytes();
         }
 
         writeEntry({timestamp, interval, desktop, idle, windows}) {

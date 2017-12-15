@@ -42,7 +42,7 @@ var {
             this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_LOW, interval, () => {
                 const entry = generateLogEntry();
                 entry.interval = interval;
-                writer.writeEntry(entry);
+                writer.write(entry);
                 return true;
             });
         }
