@@ -36,8 +36,12 @@ var {
         // Configure defaults before first use,
         // it seems impossible to put those directly in schema file.
         if (!settings.get_string('log-path')) {
-            // TODO create .arbtt directory if necessary.
-            const defaultPath = GLib.get_home_dir() + '/.arbtt/capture.log';
+            const dir = Gio.File.new_for_path(GLib.get_home_dir()).get_child('.arbtt');
+            log('ensuring that ~/.arbtt directory exists');
+            dir.make_directory(null);
+
+            const defaultPath = dir.get_child('capture.log').get_path();
+            log(`configuring default log-path: ${defaultPath}`);
             settings.set_string('log-path', defaultPath);
         }
 
