@@ -29,7 +29,7 @@ package. See [user guide][user guide] for details.
 
 ## Known bugs
 
-* Log file is not locked, due to lack of file locks in GJS / GLib / Gio.
+* Log file is not locked, due to absence of file lock API in GJS / GLib / Gio.
 
 ## License
 
