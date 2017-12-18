@@ -15,6 +15,7 @@
 var {
     Reader,
     Writer,
+    Serializer,
 } = (function() {
     'use strict';
 
@@ -102,8 +103,9 @@ var {
 
         constructor(path) {
             const file = Gio.File.new_for_path(path);
-            const insertHeader = !file.query_exists(null);
             this._stream = file.append_to(Gio.FileCreateFlags.NONE, null);
+            const fileInfo = this._stream.query_info(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, null);
+            const insertHeader = fileInfo.get_size() === 0;
             if (insertHeader) {
                 this._stream.write_all(MAGIC, null);
                 this._stream.flush(null);
@@ -116,6 +118,13 @@ var {
             this._stream.write_all(bytes.get_data(), null);
             this._stream.flush(null);
         }
+
+        close() {
+            if (this._stream !== null) {
+                this._stream.close(null);
+                this._stream = null;
+            }
+        }
     }
 
     function newMemoryBackedDataStream() {
@@ -126,17 +135,21 @@ var {
     class Serializer {
 
         constructor() {
-            this._stream = null;
+            this._stream = newMemoryBackedDataStream();
             this._lookupPool = new Map();
             this._appendPool = [];
         }
 
-
         serialize(entry) {
-            this._stream = newMemoryBackedDataStream();
             this.writeEntry(entry);
+            return this.stealBytes();
+        }
+
+        stealBytes() {
             this._stream.close(null);
-            return this._stream.get_base_stream().steal_as_bytes();
+            const bytes = this._stream.get_base_stream().steal_as_bytes();
+            this._stream = newMemoryBackedDataStream();
+            return bytes;
         }
 
         writeEntry({timestamp, interval, desktop, idle, windows}) {
@@ -183,9 +196,24 @@ var {
             if (INT32_MIN <= value && value <= INT32_MAX) {
                 this._stream.put_byte(0, null);
                 this._stream.put_int32(value, null);
+            } else if (Number.isSafeInteger(value)) {
+                this._stream.put_byte(1, null);
+                const sign = value >= 0 ? 0x01 : 0xff;
+                this._stream.put_byte(sign, null);
+
+                const bytes = [];
+                value = Math.abs(value);
+                while (value > 0) {
+                    bytes.push(value & 0xff);
+                    // Use division to avoid truncation to 32bits.
+                    value = Math.floor(value / 256);
+                }
+                bytes.reverse();
+
+                this._stream.put_int64(bytes.length, null);
+                this._stream.write_all(ByteArray.fromArray(bytes), null);
             } else {
-                // TODO implement this!
-                throw new Error('not implemented yet');
+                throw new Error(`integer overflow: ${value}`);
             }
         }
 
@@ -228,7 +256,7 @@ var {
             this._stream = Gio.DataInputStream.new(file.read(null));
             const header = this._stream.read_bytes(MAGIC.length, null);
             if (header.get_data() != MAGIC) {
-                throw new Error("invalid magic bytes");
+                throw new Error('invalid magic bytes');
             }
 
             this._lookupPool = []
@@ -359,7 +387,7 @@ var {
                     }
                 }
 
-                return sign == 1 ? value : -value;
+                return sign === 1 ? value : -value;
             }
         }
 
@@ -402,5 +430,6 @@ var {
     return {
         Reader,
         Writer,
+        Serializer,
     };
 }());

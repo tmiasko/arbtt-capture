@@ -27,35 +27,65 @@ var {
     const Settings = Extension.imports.settings;
     const TimeLog = Extension.imports.timeLog;
 
-    class Capture {
+    class ArbttCaptureExtension {
 
         constructor() {
+            this._writer = null;
             this._timeoutId = null;
             this._settings = Settings.getSettings();
-        }
-
-        enable() {
-            const interval = this._settings.get_uint('sampling-interval');
-            const path = this._settings.get_string('log-path');
-            const writer = new TimeLog.Writer(path);
-
-            this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_LOW, interval, () => {
-                const entry = generateLogEntry();
-                entry.interval = interval;
-                writer.write(entry);
-                return true;
+            this._settings.connect('changed', () => {
+                if (this.isEnabled()) {
+                    log('Settings changed. Restarting writer.');
+                    this.stopWriter();
+                    this.startWriter();
+                }
             });
         }
 
+        isEnabled() {
+            return this._timeoutId !== null;
+        }
+
+        enable() {
+            this.startWriter();
+        }
+
         disable() {
+            this.stopWriter();
+        }
+
+        startWriter() {
+            const samplingInterval = this._settings.get_uint('sampling-interval');
+            const logPath = this._settings.get_string('log-path');
+            log(`Starting writer with config sampling-interval=${samplingInterval} log-path=${logPath}`);
+            this._writer = new TimeLog.Writer(logPath);
+            this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_LOW, samplingInterval, () => {
+                try {
+                    const entry = generateLogEntry(samplingInterval);
+                    this._writer.write(entry);
+                    return true;
+                } catch (e) {
+                    log(`Error writing entry: ${e}`);
+                    this.stopWriter();
+                    return false;
+                }
+            });
+        }
+
+        stopWriter() {
+            log('Stopping writer.');
             if (this._timeoutId !== null) {
                 GLib.source_remove(this._timeoutId);
                 this._timeoutId = null;
             }
+            if (this._writer !== null) {
+                this._writer.close();
+                this._writer = null;
+            }
         }
     };
 
-    function generateLogEntry() {
+    function generateLogEntry(interval) {
         let focused = global.display.get_focus_window();
         if (focused !== null) {
             // Move along ancestry skipping over transient windows.
@@ -84,16 +114,15 @@ var {
         return {
             timestamp: new Date(),
             desktop: workspace,
-            idle: idle,
-            windows: windows,
-        }
+            idle,
+            windows,
+            interval,
+        };
     }
 
     function init() {
-        return new Capture();
+        return new ArbttCaptureExtension();
     }
 
-    return {
-        init: init,
-    }
+    return { init };
 }());
