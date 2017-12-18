@@ -335,7 +335,7 @@ var {
             while (count > 0) {
                 const bytes = this._stream.read_bytes(count, null).toArray();
                 if (bytes.length === 0) {
-                    throw new Error("unexpected eof");
+                    throw new Error('unexpected eof');
                 }
                 count -= bytes.length;
                 for (let i=0; i !== bytes.length; i++) {
@@ -361,7 +361,7 @@ var {
         readInt64() {
             const value = this._stream.read_int64(null);
             if (!Number.isSafeInteger(value)) {
-                throw new Error("integer overflow");
+                throw new Error('integer overflow');
             }
             return value;
         }
@@ -383,7 +383,7 @@ var {
                 for (const byte of bytes) {
                     value = value * 256 + byte;
                     if (!Number.isSafeInteger(value)) {
-                        throw new Error("integer overflow");
+                        throw new Error('integer overflow');
                     }
                 }
 
@@ -396,7 +396,7 @@ var {
             const bytes = [this._stream.read_byte(null)];
             const width = UTF8_CHAR_WIDTH[bytes[0]];
             if (width === 0) {
-                throw new Error("invalid utf-8 string"); 
+                throw new Error('invalid utf-8 string');
             }
             for (let i=1; i != width; i++) {
                 bytes.push(this._stream.read_byte(null));
@@ -411,7 +411,7 @@ var {
             let result;
             if (tag === 0) {
                 const count = this.readInt64();
-                result = "";
+                result = '';
                 for (let i=0; i !== count; ++i) {
                     result += this.readChar();
                 }

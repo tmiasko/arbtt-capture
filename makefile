@@ -1,7 +1,15 @@
-.PHONY: all clean
+.PHONY: all check schemas clean
 
-all:
+all: schemas
+
+schemas:
 	glib-compile-schemas .
 
+check:
+	gjs -C '' --coverage-output=coverage -I . test/testTimeLog.js
+	genhtml coverage/coverage.lcov -o coverage_html
+
 clean:
-	rm gschemas.compiled
+	rm -fr coverage
+	rm -fr coverage_html
+

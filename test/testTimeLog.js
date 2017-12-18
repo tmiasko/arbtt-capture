@@ -61,6 +61,36 @@ function testWriteInteger() {
         let actual = s.stealBytes();
         assertBytesEqual(expected, actual);
     }
+
+
+    // Safe integer is indeed safe to write.
+    const s = new TimeLog.Serializer();
+    s.writeInteger(Number.MAX_SAFE_INTEGER);
+
+    // TODO add test for unsafe integers
+    // const s = new TimeLog.Serializer();
+    // s.writeInteger(Number.MAX_SAFE_INTEGER + 1);
+}
+
+function testWriteString() {
+    let testCases = [
+        {from: "", to: [0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]},
+        {from: "abc", to: [0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03,
+            0x61, 0x62, 0x63]},
+        {from: "🦊", to: [0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
+            0xf0, 0x9f, 0xa6, 0x8a]},
+    ];
+
+    for (const {from, to} of testCases) {
+        const s = new TimeLog.Serializer();
+        s.writeString(from);
+        let expected = new GLib.Bytes(to);
+        let actual = s.stealBytes();
+        assertBytesEqual(expected, actual);
+    }
 }
 
 function testReaderWriter() {
@@ -99,7 +129,7 @@ function testReaderWriter() {
         const reader = new TimeLog.Reader(file.get_path());
         let actualEntries = Array.from(reader);
         log(JSON.stringify(actualEntries));
-        // TODO
+        // TODO use deep equality
     } finally {
         file.delete(null);
     }
@@ -107,5 +137,6 @@ function testReaderWriter() {
 
 testWriteBool();
 testWriteInteger();
+testWriteString();
 testReaderWriter();
 
