@@ -35,7 +35,7 @@ var {
             this._settings = Settings.getSettings();
             this._settings.connect('changed', () => {
                 if (this.isEnabled()) {
-                    log('Settings changed. Restarting writer.');
+                    log('[arbtt-capture] Settings changed. Restarting writer.');
                     this.stopWriter();
                     this.startWriter();
                 }
@@ -57,7 +57,7 @@ var {
         startWriter() {
             const samplingInterval = this._settings.get_uint('sampling-interval');
             const logPath = this._settings.get_string('log-path');
-            log(`Starting writer with config sampling-interval=${samplingInterval} log-path=${logPath}`);
+            log(`[arbtt-capture] Starting writer with config sampling-interval=${samplingInterval} log-path=${logPath}`);
             this._writer = new TimeLog.Writer(logPath);
             this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_LOW, samplingInterval, () => {
                 try {
@@ -65,7 +65,9 @@ var {
                     this._writer.write(entry);
                     return true;
                 } catch (e) {
-                    log(`Error writing entry: ${e}`);
+                    const message = 'message' in e ? e.message : e.toString();
+                    const details = 'stack' in e ? `\nStack trace:\n${e.stack}` : '';
+                    Main.notifyError(`[arbtt-capture] Error while writing log entry, stopping writer: ${message}`, details);
                     this.stopWriter();
                     return false;
                 }
@@ -73,7 +75,6 @@ var {
         }
 
         stopWriter() {
-            log('Stopping writer.');
             if (this._timeoutId !== null) {
                 GLib.source_remove(this._timeoutId);
                 this._timeoutId = null;
