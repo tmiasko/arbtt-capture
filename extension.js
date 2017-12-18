@@ -65,9 +65,11 @@ var {
                     this._writer.write(entry);
                     return true;
                 } catch (e) {
-                    const message = 'message' in e ? e.message : e.toString();
-                    const details = 'stack' in e ? `\nStack trace:\n${e.stack}` : '';
-                    Main.notifyError(`[arbtt-capture] Error while writing log entry, stopping writer: ${message}`, details);
+                    const message = '[arbtt-capture] Error while writing log entry, stopping writer';
+                    const details = 'message' in e ? e.message : e.toString();
+                    const stacktrace = 'stack' in e ? `\nStack trace:\n${e.stack}` : '';
+                    Main.notify(`${message}.`, details);
+                    log(`${message}: ${details}${stacktrace}`);
                     this.stopWriter();
                     return false;
                 }
