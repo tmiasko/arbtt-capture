@@ -100,7 +100,7 @@ var {
                 program: w.get_wm_class_instance(),
                 active: w == focused,
             }
-        });
+        }).filter((w) => w.title !== null && w.program !== null);
 
         const focusedFound = windows.some((w) => w.active);
         if (focused !== null && !focusedFound) {
