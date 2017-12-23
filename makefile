@@ -6,10 +6,7 @@ schemas:
 	glib-compile-schemas .
 
 check:
-	gjs -C '' --coverage-output=coverage -I . test/testTimeLog.js
-	genhtml coverage/coverage.lcov -o coverage_html
+	gjs -I . test/testArbtt.js
 
 clean:
-	rm -fr coverage
-	rm -fr coverage_html
 

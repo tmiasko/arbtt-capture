@@ -25,7 +25,7 @@ var {
     
     const Extension = imports.misc.extensionUtils.getCurrentExtension();
     const Settings = Extension.imports.settings;
-    const TimeLog = Extension.imports.timeLog;
+    const Arbtt = Extension.imports.arbtt;
 
     class ArbttCaptureExtension {
 
@@ -58,7 +58,7 @@ var {
             const samplingInterval = this._settings.get_uint('sampling-interval');
             const logPath = this._settings.get_string('log-path');
             log(`[arbtt-capture] Starting writer with config sampling-interval=${samplingInterval} log-path=${logPath}`);
-            this._writer = new TimeLog.Writer(logPath);
+            this._writer = new Arbtt.Writer(logPath);
             this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_LOW, samplingInterval, () => {
                 try {
                     const entry = generateLogEntry(samplingInterval);
