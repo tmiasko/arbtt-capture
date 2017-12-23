@@ -10,5 +10,10 @@
       <default>""</default>
       <summary>Location of the log file.</summary>
     </key>
+    <key name="arbtt-import-path" type="s">
+      <default>"arbtt-import"</default>
+      <summary>Location of the arbtt-import program</summary>
+      <description>Location of the arbtt-import program, or program name to lookup using PATH environment variable.</description>
+    </key>
   </schema>
 </schemalist>

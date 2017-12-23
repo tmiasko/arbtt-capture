@@ -57,8 +57,13 @@ var {
         startWriter() {
             const samplingInterval = this._settings.get_uint('sampling-interval');
             const logPath = this._settings.get_string('log-path');
-            log(`[arbtt-capture] Starting writer with config sampling-interval=${samplingInterval} log-path=${logPath}`);
-            this._writer = new Arbtt.Writer(logPath);
+            const arbttImportPath = this._settings.get_string('arbtt-import-path');
+
+            log(`[arbtt-capture] Starting writer with config sampling-interval=${samplingInterval} log-path=${logPath} arbtt-import-path=${arbttImportPath}`);
+            this._writer = new Arbtt.Writer({
+                program: arbttImportPath,
+                logPath: logPath
+            });
             this._timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_LOW, samplingInterval, () => {
                 try {
                     const entry = generateLogEntry(samplingInterval);
@@ -88,7 +93,7 @@ var {
         }
     };
 
-    function generateLogEntry(interval) {
+    function generateLogEntry(intervalSeconds) {
         let focused = global.display.get_focus_window();
         if (focused !== null) {
             // Move along ancestry skipping over transient windows.
@@ -112,14 +117,14 @@ var {
 
         const currentTime = global.display.get_current_time_roundtrip();
         const userTime = global.display.get_last_user_time();
-        const idle = currentTime - userTime;
+        const inactive = currentTime - userTime;
 
         return {
-            timestamp: new Date(),
+            date: new Date(),
             desktop: workspace,
-            idle,
+            inactive,
             windows,
-            interval,
+            interval: intervalSeconds * 1000,
         };
     }
 

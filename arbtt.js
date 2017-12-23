@@ -61,7 +61,7 @@ var {
         }
 
         // Appends given entry to the the time log.
-        append({date, interval, inactive, windows, desktop}) {
+        write({date, interval, inactive, windows, desktop}) {
             const entry = {
                 date: date.toISOString(),
                 // This field is unfortunately misnamed ...
