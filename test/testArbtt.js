@@ -80,7 +80,7 @@ function testWriter() {
             logPath: file.get_path(),
         });
         for (const entry of entries) {
-            writer.append(entry);
+            writer.write(entry);
         }
         writer.close();
 

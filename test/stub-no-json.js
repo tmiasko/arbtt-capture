@@ -13,6 +13,8 @@
 //
 // Testing stub for arbtt-import that doesn't support JSON output format.
 
+'use strict';
+
 const usage = `
 Usage: arbtt-import [OPTIONS...]
   -h, -?     --help           show this help

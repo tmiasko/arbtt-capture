@@ -13,6 +13,8 @@
 //
 // Testing stub for arbtt-import that has all required features.
 
+'use strict';
+
 const usage = `
 Usage: arbtt-import [OPTIONS...]
   -h, -?     --help           show this help
