@@ -15,25 +15,24 @@ data.*
 
 ## Installation and usage
 
-1.  Clone git repository into GNOME shell extension directory:
+ 1. [Install arbtt][arbtt-installation]. Its arbtt-import application
+    should support at least `--append` flag and `--format=JSON`.
+ 2. Clone git repository into GNOME shell extension directory:
     ```
     mkdir -p ~/.local/share/gnome-shell/extensions
     git clone https://github.com/tmiasko/arbtt-capture ~/.local/share/gnome-shell/extensions/arbtt-capture@tmiasko.github.com
     ```
-2. Restart gnome-shell.
-3. Disable original arbtt-capture, if you have used it before.
-4. Enable extension using gnome-tweak-tool.
+ 3. Restart gnome-shell.
+ 4. Disable original arbtt-capture, if you have used it before.
+ 5. Configure and enable extension using gnome-tweak-tool.
 
 To process the logs use arbtt-stats from original [arbtt][arbtt] software
-package. See [user guide][user guide] for details.
-
-## Known bugs
-
-* Log file is not locked, due to absence of file lock API in GJS / GLib / Gio.
+package. See [user guide][arbtt-user-guide] for details.
 
 ## License
 
 GNU GPLv3, see LICENSE file for details.
 
 [arbtt]: http://arbtt.nomeata.de/#what
-[user guide]: http://arbtt.nomeata.de/doc/users_guide/configuration.html
+[arbtt-user-guide]: http://arbtt.nomeata.de/doc/users_guide/configuration.html
+[arbtt-installation]: http://arbtt.nomeata.de/doc/users_guide/index.html#installation
