@@ -38,7 +38,13 @@ var {
         if (!settings.get_string('log-path')) {
             const dir = Gio.File.new_for_path(GLib.get_home_dir()).get_child('.arbtt');
             log('ensuring that ~/.arbtt directory exists');
-            dir.make_directory(null);
+            try {
+              dir.make_directory(null);
+            } catch (e) {
+               if (!e.matches(Gio.IOErrorEnum, Gio.IOErrorEnum.EXISTS)) {
+                 log(`Error creating ~/.arbtt/ directory: ${e}`);
+               }
+            }
 
             const defaultPath = dir.get_child('capture.log').get_path();
             log(`configuring default log-path: ${defaultPath}`);
