@@ -70,7 +70,7 @@ var {
                 windows,
                 desktop,
             };
-            const bytes = JSON.stringify(entry);
+            const bytes = JSON.stringify(entry) + '\n';
             const stream = this._process.get_stdin_pipe();
             stream.write_all(bytes, null);
             stream.flush(null);
