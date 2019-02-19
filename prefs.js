@@ -99,7 +99,8 @@ var {
                 tooltip_text: importTooltip,
             });
             settings.bind('arbtt-import-path', importEntry, 'text', Gio.SettingsBindFlags.DEFAULT);
-            importEntry.connect('focus-out-event', (entry) => {
+
+            const validateImportEntry = (entry) => {
                 const primary = Gtk.EntryIconPosition.PRIMARY;
                 try {
                     const program = entry.get_text();
@@ -112,7 +113,11 @@ var {
                     entry.set_icon_tooltip_text(primary, e.toString());
                     entry.get_style_context().add_class('error');
                 }
-            });
+            };
+
+            // Validate entry when focus is lost and when enter key is pressed.
+            importEntry.connect('focus-out-event', validateImportEntry);
+            importEntry.connect('activate', validateImportEntry);
             this.attach_next_to(importEntry, importLabel, Gtk.PositionType.RIGHT, 1, 1);
         }
     });
