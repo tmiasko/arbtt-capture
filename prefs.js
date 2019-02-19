@@ -101,6 +101,11 @@ var {
             settings.bind('arbtt-import-path', importEntry, 'text', Gio.SettingsBindFlags.DEFAULT);
 
             const validateImportEntry = (entry) => {
+                if (entry.get_text_length() === 0) {
+                  const [defaultValue] = settings.get_default_value('arbtt-import-path').get_string();
+                  entry.set_text(defaultValue);
+                }
+
                 const primary = Gtk.EntryIconPosition.PRIMARY;
                 try {
                     const program = entry.get_text();
