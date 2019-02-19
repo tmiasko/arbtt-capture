@@ -112,7 +112,15 @@ var {
             log(`Focused window not found in tab-list: title=${focused.get_title()}, wm_class=${focused.get_wm_class()}`);
         }
 
-        const workspaceIndex = global.screen.get_active_workspace_index();
+        let workspaceIndex;
+        if ('screen' in global) {
+          // Backward compatibility for gnome-shell before 3.29.3.
+          // Commit removing screen property 47ea10b7c976abb1b9ab4f34da87abb1e36855fe
+          workspaceIndex = global.screen.get_active_workspace_index();
+        } else {
+          const workspaceManager = global.workspace_manager;
+          workspaceIndex = workspaceManager.get_active_workspace_index();
+        }
         const workspace = Meta.prefs_get_workspace_name(workspaceIndex);
 
         const currentTime = global.display.get_current_time_roundtrip();
